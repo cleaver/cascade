@@ -1,0 +1,39 @@
+{
+  "attributes": [
+    {
+      "default": "fragment(\"uuid_generate_v4()\")",
+      "size": null,
+      "type": "uuid",
+      "source": "id",
+      "references": null,
+      "allow_nil?": false,
+      "primary_key?": true,
+      "generated?": false
+    },
+    {
+      "default": "nil",
+      "size": null,
+      "type": "text",
+      "source": "name",
+      "references": null,
+      "allow_nil?": false,
+      "primary_key?": false,
+      "generated?": false
+    }
+  ],
+  "table": "authors",
+  "hash": "A1ED289714C672B81468FB07B1DFE6B5276619AAFE623AD9DB3FD7CD74AF1BD4",
+  "repo": "Elixir.Cascade.Repo",
+  "schema": null,
+  "check_constraints": [],
+  "identities": [],
+  "custom_indexes": [],
+  "multitenancy": {
+    "global": null,
+    "attribute": null,
+    "strategy": null
+  },
+  "base_filter": null,
+  "custom_statements": [],
+  "has_create_action": true
+}

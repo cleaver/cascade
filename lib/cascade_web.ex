@@ -62,6 +62,8 @@ defmodule CascadeWeb do
     quote do
       use Phoenix.LiveComponent
 
+      defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
+
       unquote(html_helpers())
     end
   end

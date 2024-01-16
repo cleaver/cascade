@@ -1,12 +1,11 @@
 defmodule CascadeWeb.TagLive.Index do
   use CascadeWeb, :live_view
 
-  alias Cascade.Content
   alias Cascade.Content.Tag
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, stream(socket, :tags, Content.list_tags())}
+    {:ok, stream(socket, :tags, Tag.index!())}
   end
 
   @impl true
@@ -17,7 +16,7 @@ defmodule CascadeWeb.TagLive.Index do
   defp apply_action(socket, :edit, %{"id" => id}) do
     socket
     |> assign(:page_title, "Edit Tag")
-    |> assign(:tag, Content.get_tag!(id))
+    |> assign(:tag, Tag.get_by_id!(id))
   end
 
   defp apply_action(socket, :new, _params) do
@@ -39,8 +38,8 @@ defmodule CascadeWeb.TagLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    tag = Content.get_tag!(id)
-    {:ok, _} = Content.delete_tag(tag)
+    tag = Tag.get_by_id!(id)
+    Tag.destroy!(tag)
 
     {:noreply, stream_delete(socket, :tags, tag)}
   end

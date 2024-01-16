@@ -8,6 +8,7 @@
 import Config
 
 config :cascade,
+  ash_apis: [Cascade.Content],
   ecto_repos: [Cascade.Repo],
   generators: [timestamp_type: :utc_datetime]
 

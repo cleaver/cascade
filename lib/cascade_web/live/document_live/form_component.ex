@@ -1,7 +1,10 @@
 defmodule CascadeWeb.DocumentLive.FormComponent do
   use CascadeWeb, :live_component
 
-  alias Cascade.Content
+  alias Cascade.Content.Document
+  alias CascadeWeb.Helpers.Slug
+
+  @api Cascade.Content
 
   @impl true
   def render(assigns) do
@@ -20,8 +23,8 @@ defmodule CascadeWeb.DocumentLive.FormComponent do
         phx-submit="save"
       >
         <.input field={@form[:title]} type="text" label="Title" />
-        <.input field={@form[:body]} type="text" label="Body" />
         <.input field={@form[:slug]} type="text" label="Slug" />
+        <.input field={@form[:body]} type="textarea" label="Body" />
         <.input field={@form[:publish_at]} type="datetime-local" label="Publish at" />
         <:actions>
           <.button phx-disable-with="Saving...">Save Document</.button>
@@ -32,62 +35,44 @@ defmodule CascadeWeb.DocumentLive.FormComponent do
   end
 
   @impl true
-  def update(%{document: document} = assigns, socket) do
-    changeset = Content.change_document(document)
+  def update(%{action: action, document: document} = assigns, socket) do
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign_form(action, document)
 
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign_form(changeset)}
+    {:ok, socket}
   end
 
   @impl true
-  def handle_event("validate", %{"document" => document_params}, socket) do
-    changeset =
-      socket.assigns.document
-      |> Content.change_document(document_params)
-      |> Map.put(:action, :validate)
-
-    {:noreply, assign_form(socket, changeset)}
+  def handle_event("validate", %{"form" => document_params}, socket) do
+    IO.inspect(document_params, label: "document_params")
+    form = AshPhoenix.Form.validate(socket.assigns.form, document_params) |> to_form()
+    {:noreply, assign(socket, form: form)}
   end
 
-  def handle_event("save", %{"document" => document_params}, socket) do
-    save_document(socket, socket.assigns.action, document_params)
-  end
-
-  defp save_document(socket, :edit, document_params) do
-    case Content.update_document(socket.assigns.document, document_params) do
+  def handle_event("save", %{"form" => document_params}, socket) do
+    case AshPhoenix.Form.submit(socket.assigns.form, params: document_params) do
       {:ok, document} ->
         notify_parent({:saved, document})
 
-        {:noreply,
-         socket
-         |> put_flash(:info, "Document updated successfully")
-         |> push_patch(to: socket.assigns.patch)}
+        socket =
+          socket
+          |> put_flash(:info, "Saved document #{document.title}!")
+          |> push_patch(to: socket.assigns.patch)
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign_form(socket, changeset)}
+        {:noreply, socket}
+
+      {:error, form} ->
+        {:noreply, assign(socket, form: form)}
     end
   end
 
-  defp save_document(socket, :new, document_params) do
-    case Content.create_document(document_params) do
-      {:ok, document} ->
-        notify_parent({:saved, document})
-
-        {:noreply,
-         socket
-         |> put_flash(:info, "Document created successfully")
-         |> push_patch(to: socket.assigns.patch)}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign_form(socket, changeset)}
-    end
+  defp assign_form(socket, :edit, document) do
+    assign(socket, :form, AshPhoenix.Form.for_update(document, :update, api: @api) |> to_form())
   end
 
-  defp assign_form(socket, %Ecto.Changeset{} = changeset) do
-    assign(socket, :form, to_form(changeset))
+  defp assign_form(socket, :new, _document) do
+    assign(socket, :form, AshPhoenix.Form.for_create(Document, :create, api: @api) |> to_form())
   end
-
-  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 end
