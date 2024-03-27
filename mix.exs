@@ -36,7 +36,7 @@ defmodule Cascade.MixProject do
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.10"},
       {:postgrex, ">= 0.0.0"},
-      {:phoenix_html, "~> 3.3"},
+      {:phoenix_html, "~> 4.0"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 0.20.1"},
       {:floki, ">= 0.30.0", only: :test},
@@ -51,9 +51,14 @@ defmodule Cascade.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:plug_cowboy, "~> 2.5"},
-      {:ash, "~> 2.17"},
-      {:ash_postgres, "~> 1.3"},
-      {:ash_phoenix, "~> 1.2"}
+      {:ash, "~> 2.21"},
+      {:ash_postgres, "~> 1.5"},
+      {:ash_phoenix, "~> 1.3"},
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:git_hooks, "~> 0.7.0", only: [:dev], runtime: false},
+      {:mix_test_watch, "~> 1.1.1", only: [:dev, :test], runtime: false},
+      {:periscope, "~> 0.6.0", only: [:dev]}
     ]
   end
 

@@ -80,3 +80,24 @@ config :phoenix_live_view, :debug_heex_annotations, true
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+# Configure git_hooks
+config :git_hooks,
+  auto_install: true,
+  verbose: true,
+  hooks: [
+    pre_commit: [
+      tasks: [
+        {:cmd, "mix format --check-formatted"},
+        {:cmd, "mix credo --strict"},
+        {:cmd, "mix test --color"}
+      ]
+    ],
+    pre_push: [
+      verbose: false,
+      tasks: [
+        {:cmd, "mix dialyzer"},
+        {:cmd, "mix test --color"}
+      ]
+    ]
+  ]
