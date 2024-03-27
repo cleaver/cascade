@@ -1,7 +1,7 @@
 defmodule CascadeWeb.AuthorLive.Show do
   use CascadeWeb, :live_view
 
-  alias Cascade.Content
+  alias Cascade.Content.Author
 
   @impl true
   def mount(_params, _session, socket) do
@@ -13,7 +13,7 @@ defmodule CascadeWeb.AuthorLive.Show do
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:author, Content.get_author!(id))}
+     |> assign(:author, Author.get_by_id!(id))}
   end
 
   defp page_title(:show), do: "Show Author"

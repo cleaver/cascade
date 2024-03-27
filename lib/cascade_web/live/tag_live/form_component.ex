@@ -1,7 +1,9 @@
 defmodule CascadeWeb.TagLive.FormComponent do
   use CascadeWeb, :live_component
 
-  alias Cascade.Content
+  alias Cascade.Content.Tag
+
+  @api Cascade.Content
 
   @impl true
   def render(assigns) do
@@ -29,62 +31,43 @@ defmodule CascadeWeb.TagLive.FormComponent do
   end
 
   @impl true
-  def update(%{tag: tag} = assigns, socket) do
-    changeset = Content.change_tag(tag)
+  def update(%{action: action, tag: tag} = assigns, socket) do
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign_form(action, tag)
 
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign_form(changeset)}
+    {:ok, socket}
   end
 
   @impl true
-  def handle_event("validate", %{"tag" => tag_params}, socket) do
-    changeset =
-      socket.assigns.tag
-      |> Content.change_tag(tag_params)
-      |> Map.put(:action, :validate)
-
-    {:noreply, assign_form(socket, changeset)}
+  def handle_event("validate", %{"form" => tag_params}, socket) do
+    form = AshPhoenix.Form.validate(socket.assigns.form, tag_params) |> to_form()
+    {:noreply, assign(socket, form: form)}
   end
 
-  def handle_event("save", %{"tag" => tag_params}, socket) do
-    save_tag(socket, socket.assigns.action, tag_params)
-  end
-
-  defp save_tag(socket, :edit, tag_params) do
-    case Content.update_tag(socket.assigns.tag, tag_params) do
+  def handle_event("save", %{"form" => tag_params}, socket) do
+    case AshPhoenix.Form.submit(socket.assigns.form, params: tag_params) do
       {:ok, tag} ->
         notify_parent({:saved, tag})
 
-        {:noreply,
-         socket
-         |> put_flash(:info, "Tag updated successfully")
-         |> push_patch(to: socket.assigns.patch)}
+        socket =
+          socket
+          |> put_flash(:info, "Saved tag #{tag.name}!")
+          |> push_patch(to: socket.assigns.patch)
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign_form(socket, changeset)}
+        {:noreply, socket}
+
+      {:error, form} ->
+        {:noreply, assign(socket, form: form)}
     end
   end
 
-  defp save_tag(socket, :new, tag_params) do
-    case Content.create_tag(tag_params) do
-      {:ok, tag} ->
-        notify_parent({:saved, tag})
-
-        {:noreply,
-         socket
-         |> put_flash(:info, "Tag created successfully")
-         |> push_patch(to: socket.assigns.patch)}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign_form(socket, changeset)}
-    end
+  defp assign_form(socket, :edit, tag) do
+    assign(socket, :form, AshPhoenix.Form.for_update(tag, :update, api: @api) |> to_form())
   end
 
-  defp assign_form(socket, %Ecto.Changeset{} = changeset) do
-    assign(socket, :form, to_form(changeset))
+  defp assign_form(socket, :new, _tag) do
+    assign(socket, :form, AshPhoenix.Form.for_create(Tag, :create, api: @api) |> to_form())
   end
-
-  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 end

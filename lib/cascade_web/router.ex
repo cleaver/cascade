@@ -18,6 +18,24 @@ defmodule CascadeWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    live "/documents", DocumentLive.Index, :index
+    live "/documents/new", DocumentLive.Index, :new
+    live "/documents/:id/edit", DocumentLive.Index, :edit
+    live "/documents/:id", DocumentLive.Show, :show
+    live "/documents/:id/show/edit", DocumentLive.Show, :edit
+
+    live "/authors", AuthorLive.Index, :index
+    live "/authors/new", AuthorLive.Index, :new
+    live "/authors/:id/edit", AuthorLive.Index, :edit
+    live "/authors/:id", AuthorLive.Show, :show
+    live "/authors/:id/show/edit", AuthorLive.Show, :edit
+
+    live "/tags", TagLive.Index, :index
+    live "/tags/new", TagLive.Index, :new
+    live "/tags/:id/edit", TagLive.Index, :edit
+    live "/tags/:id", TagLive.Show, :show
+    live "/tags/:id/show/edit", TagLive.Show, :edit
   end
 
   # Other scopes may use custom stacks.

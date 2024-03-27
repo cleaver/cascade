@@ -1,12 +1,11 @@
 defmodule CascadeWeb.AuthorLive.Index do
   use CascadeWeb, :live_view
 
-  alias Cascade.Content
   alias Cascade.Content.Author
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, stream(socket, :authors, Content.list_authors())}
+    {:ok, stream(socket, :authors, Author.index!())}
   end
 
   @impl true
@@ -17,7 +16,7 @@ defmodule CascadeWeb.AuthorLive.Index do
   defp apply_action(socket, :edit, %{"id" => id}) do
     socket
     |> assign(:page_title, "Edit Author")
-    |> assign(:author, Content.get_author!(id))
+    |> assign(:author, Author.get_by_id!(id))
   end
 
   defp apply_action(socket, :new, _params) do
@@ -39,8 +38,8 @@ defmodule CascadeWeb.AuthorLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    author = Content.get_author!(id)
-    {:ok, _} = Content.delete_author(author)
+    author = Author.get_by_id!(id)
+    Author.destroy!(author)
 
     {:noreply, stream_delete(socket, :authors, author)}
   end

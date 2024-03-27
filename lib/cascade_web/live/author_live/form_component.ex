@@ -1,7 +1,9 @@
 defmodule CascadeWeb.AuthorLive.FormComponent do
   use CascadeWeb, :live_component
 
-  alias Cascade.Content
+  alias Cascade.Content.Author
+
+  @api Cascade.Content
 
   @impl true
   def render(assigns) do
@@ -29,62 +31,43 @@ defmodule CascadeWeb.AuthorLive.FormComponent do
   end
 
   @impl true
-  def update(%{author: author} = assigns, socket) do
-    changeset = Content.change_author(author)
+  def update(%{action: action, author: author} = assigns, socket) do
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign_form(action, author)
 
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign_form(changeset)}
+    {:ok, socket}
   end
 
   @impl true
-  def handle_event("validate", %{"author" => author_params}, socket) do
-    changeset =
-      socket.assigns.author
-      |> Content.change_author(author_params)
-      |> Map.put(:action, :validate)
-
-    {:noreply, assign_form(socket, changeset)}
+  def handle_event("validate", %{"form" => author_params}, socket) do
+    form = AshPhoenix.Form.validate(socket.assigns.form, author_params) |> to_form()
+    {:noreply, assign(socket, form: form)}
   end
 
-  def handle_event("save", %{"author" => author_params}, socket) do
-    save_author(socket, socket.assigns.action, author_params)
-  end
-
-  defp save_author(socket, :edit, author_params) do
-    case Content.update_author(socket.assigns.author, author_params) do
+  def handle_event("save", %{"form" => author_params}, socket) do
+    case AshPhoenix.Form.submit(socket.assigns.form, params: author_params) do
       {:ok, author} ->
         notify_parent({:saved, author})
 
-        {:noreply,
-         socket
-         |> put_flash(:info, "Author updated successfully")
-         |> push_patch(to: socket.assigns.patch)}
+        socket =
+          socket
+          |> put_flash(:info, "Saved author #{author.name}!")
+          |> push_patch(to: socket.assigns.patch)
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign_form(socket, changeset)}
+        {:noreply, socket}
+
+      {:error, form} ->
+        {:noreply, assign(socket, form: form)}
     end
   end
 
-  defp save_author(socket, :new, author_params) do
-    case Content.create_author(author_params) do
-      {:ok, author} ->
-        notify_parent({:saved, author})
-
-        {:noreply,
-         socket
-         |> put_flash(:info, "Author created successfully")
-         |> push_patch(to: socket.assigns.patch)}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign_form(socket, changeset)}
-    end
+  defp assign_form(socket, :edit, author) do
+    assign(socket, :form, AshPhoenix.Form.for_update(author, :update, api: @api) |> to_form())
   end
 
-  defp assign_form(socket, %Ecto.Changeset{} = changeset) do
-    assign(socket, :form, to_form(changeset))
+  defp assign_form(socket, :new, _author) do
+    assign(socket, :form, AshPhoenix.Form.for_create(Author, :create, api: @api) |> to_form())
   end
-
-  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 end
