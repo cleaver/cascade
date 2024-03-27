@@ -1,4 +1,7 @@
 defmodule Cascade.Content do
+  @moduledoc """
+  Ash API for content management.
+  """
   use Ash.Api
 
   resources do

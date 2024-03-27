@@ -1,4 +1,7 @@
 defmodule Cascade.Content.DocumentTag do
+  @moduledoc """
+  Ash resource to associate documents with tags.
+  """
   use Ash.Resource,
     data_layer: AshPostgres.DataLayer
 
@@ -7,12 +10,17 @@ defmodule Cascade.Content.DocumentTag do
     repo Cascade.Repo
   end
 
-  attributes do
-    uuid_primary_key :id
+  actions do
+    defaults [:create, :read, :update, :destroy]
   end
 
   relationships do
-    belongs_to :document, Cascade.Content.Document
-    belongs_to :tag, Cascade.Content.Tag
+    belongs_to :document, Cascade.Content.Document,
+      primary_key?: true,
+      allow_nil?: false
+
+    belongs_to :tag, Cascade.Content.Tag,
+      primary_key?: true,
+      allow_nil?: false
   end
 end

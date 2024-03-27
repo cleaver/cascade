@@ -1,4 +1,7 @@
 defmodule Cascade.Content.Author do
+  @moduledoc """
+  Ash resource for authors.
+  """
   use Ash.Resource,
     data_layer: AshPostgres.DataLayer
 
@@ -15,6 +18,7 @@ defmodule Cascade.Content.Author do
     define :destroy, action: :destroy
     define :get_by_id, args: [:id], action: :by_id
     define :index
+    define :list_options
   end
 
   actions do
@@ -29,6 +33,10 @@ defmodule Cascade.Content.Author do
     read :index do
       prepare build(sort: [name: :asc])
     end
+
+    read :list_options do
+      prepare build(select: [:name, :id], sort: [name: :asc])
+    end
   end
 
   attributes do
@@ -41,5 +49,9 @@ defmodule Cascade.Content.Author do
     create_timestamp :inserted_at
 
     update_timestamp :updated_at
+  end
+
+  relationships do
+    has_many :documents, Cascade.Content.Document
   end
 end

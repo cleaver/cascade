@@ -2,157 +2,17 @@
 
 A basic headless CMS using Phoenix and Ash.
 
+## Todo
+
+- [ ] Clean up DocumentLive.FormComponent
+  - [ ] Use Nested Forms
+  - [ ] Remove the CRUD stuff.
+- [ ] Add GraphQL
+
 ## Converting to Ash
 
-The `index` component changes are relatively simple:
-
-```diff
-diff --git a/lib/cascade_web/live/author_live/index.ex b/lib/cascade_web/live/author_live/index.ex
-index 4a915e1..cc4d3d4 100644
---- a/lib/cascade_web/live/author_live/index.ex
-+++ b/lib/cascade_web/live/author_live/index.ex
-@@ -1,12 +1,11 @@
- defmodule CascadeWeb.AuthorLive.Index do
-   use CascadeWeb, :live_view
- 
--  alias Cascade.Content
-   alias Cascade.Content.Author
- 
-   @impl true
-   def mount(_params, _session, socket) do
--    {:ok, stream(socket, :authors, Content.list_authors())}
-+    {:ok, stream(socket, :authors, Author.index!())}
-   end
- 
-   @impl true
-@@ -17,7 +16,7 @@ defmodule CascadeWeb.AuthorLive.Index do
-   defp apply_action(socket, :edit, %{"id" => id}) do
-     socket
-     |> assign(:page_title, "Edit Author")
--    |> assign(:author, Content.get_author!(id))
-+    |> assign(:author, Author.get_by_id!(id))
-   end
- 
-   defp apply_action(socket, :new, _params) do
-@@ -39,8 +38,8 @@ defmodule CascadeWeb.AuthorLive.Index do
- 
-   @impl true
-   def handle_event("delete", %{"id" => id}, socket) do
--    author = Content.get_author!(id)
--    {:ok, _} = Content.delete_author(author)
-+    author = Author.get_by_id!(id)
-+    Author.destroy!(author)
- 
-     {:noreply, stream_delete(socket, :authors, author)}
-   end
-
-```
-
-There are more changes to the create/update functions. Overall, fewer lines of code are required.
-
-```diff
-diff --git a/lib/cascade_web/live/author_live/form_component.ex b/lib/cascade_web/live/author_live/form_component.ex
-index 68bd3db..77886f3 100644
---- a/lib/cascade_web/live/author_live/form_component.ex
-+++ b/lib/cascade_web/live/author_live/form_component.ex
-@@ -1,7 +1,9 @@
- defmodule CascadeWeb.AuthorLive.FormComponent do
-   use CascadeWeb, :live_component
- 
--  alias Cascade.Content
-+  alias Cascade.Content.Author
-+
-+  @api Cascade.Content
- 
-   @impl true
-   def render(assigns) do
-@@ -29,62 +31,44 @@ defmodule CascadeWeb.AuthorLive.FormComponent do
-   end
- 
-   @impl true
--  def update(%{author: author} = assigns, socket) do
--    changeset = Content.change_author(author)
-+  def update(%{action: action, author: author} = assigns, socket) do
-+    socket =
-+      socket
-+      |> assign(assigns)
-+      |> assign_form(action, author)
- 
--    {:ok,
--     socket
--     |> assign(assigns)
--     |> assign_form(changeset)}
-+    {:ok, socket}
-   end
- 
-   @impl true
--  def handle_event("validate", %{"author" => author_params}, socket) do
--    changeset =
--      socket.assigns.author
--      |> Content.change_author(author_params)
--      |> Map.put(:action, :validate)
--
--    {:noreply, assign_form(socket, changeset)}
--  end
- 
--  def handle_event("save", %{"author" => author_params}, socket) do
--    save_author(socket, socket.assigns.action, author_params)
-+  def handle_event("validate", %{"form" => author_params}, socket) do
-+    form = AshPhoenix.Form.validate(socket.assigns.form, author_params) |> to_form()
-+    {:noreply, assign(socket, form: form)}
-   end
- 
--  defp save_author(socket, :edit, author_params) do
--    case Content.update_author(socket.assigns.author, author_params) do
-+  def handle_event("save", %{"form" => author_params}, socket) do
-+    case AshPhoenix.Form.submit(socket.assigns.form, params: author_params) do
-       {:ok, author} ->
-         notify_parent({:saved, author})
- 
--        {:noreply,
--         socket
--         |> put_flash(:info, "Author updated successfully")
--         |> push_patch(to: socket.assigns.patch)}
--
--      {:error, %Ecto.Changeset{} = changeset} ->
--        {:noreply, assign_form(socket, changeset)}
--    end
--  end
--
--  defp save_author(socket, :new, author_params) do
--    case Content.create_author(author_params) do
--      {:ok, author} ->
--        notify_parent({:saved, author})
-+        socket =
-+          socket
-+          |> put_flash(:info, "Saved author #{author.name}!")
-+          |> push_patch(to: socket.assigns.patch)
- 
--        {:noreply,
--         socket
--         |> put_flash(:info, "Author created successfully")
--         |> push_patch(to: socket.assigns.patch)}
-+        {:noreply, socket}
- 
--      {:error, %Ecto.Changeset{} = changeset} ->
--        {:noreply, assign_form(socket, changeset)}
-+      {:error, form} ->
-+        {:noreply, assign(socket, form: form)}
-     end
-   end
- 
--  defp assign_form(socket, %Ecto.Changeset{} = changeset) do
--    assign(socket, :form, to_form(changeset))
-+  defp assign_form(socket, :edit, author) do
-+    assign(socket, :form, AshPhoenix.Form.for_update(author, :update, api: @api) |> to_form())
-   end
- 
--  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
-+  defp assign_form(socket, :new, _author) do
-+    assign(socket, :form, AshPhoenix.Form.for_create(Author, :create, api: @api) |> to_form())
-+  end
- end
-```
+This application was created as a conventional Phoenix LiveView application with Ecto. The Ecto 
+context and schemas were replaced by Ash resources. [See the details](converting-to-ash.md).
 
 ## Starting Phoenix
 

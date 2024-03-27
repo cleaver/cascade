@@ -1,0 +1,47 @@
+<div>
+  <.header>
+    <%= @title %>
+    <:subtitle>Use this form to manage document records in your database.</:subtitle>
+  </.header>
+
+  <.simple_form
+    for={@form}
+    id="document-form"
+    phx-target={@myself}
+    phx-change="validate"
+    phx-submit="save"
+  >
+    <.input field={@form[:title]} type="text" label="Title" />
+    <div class="flex">
+      <div class="flex-1">
+        <.input field={@form[:slug]} type="text" label="Slug" />
+      </div>
+      <.button
+        type="button"
+        phx-click="generate-slug"
+        phx-target={@myself}
+        class="bg-secondary-500 hover:bg-secondary-400 mt-8 ml-4 h-10"
+      >
+        Generate Slug
+      </.button>
+    </div>
+    <.input field={@form[:author_id]} type="select" label="Author" options={@authors} />
+    <.input
+      field={@form[:add_tag_id]}
+      type="select"
+      label="Tag"
+      options={prepare_options(@tag_options)}
+      prompt="-"
+    />
+    <div>
+      <%= for tag <- @selected_tags do %>
+        <.tag_label id={tag.id} name={tag.name} target={@myself} />
+      <% end %>
+    </div>
+    <.input field={@form[:body]} type="textarea" label="Body" />
+    <.input field={@form[:publish_at]} type="datetime-local" label="Publish at" />
+    <:actions>
+      <.button phx-disable-with="Saving...">Save Document</.button>
+    </:actions>
+  </.simple_form>
+</div>

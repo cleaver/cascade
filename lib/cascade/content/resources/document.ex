@@ -1,4 +1,8 @@
 defmodule Cascade.Content.Document do
+  @moduledoc """
+  Ash resource for documents.
+  """
+
   use Ash.Resource,
     data_layer: AshPostgres.DataLayer
 
@@ -9,7 +13,7 @@ defmodule Cascade.Content.Document do
 
   code_interface do
     define_for Cascade.Content
-    define :create, action: :create
+    define :create, args: [:author, :tags], action: :create
     define :read_all, action: :read
     define :update, action: :update
     define :destroy, action: :destroy
@@ -19,7 +23,15 @@ defmodule Cascade.Content.Document do
   end
 
   actions do
-    defaults [:create, :read, :update, :destroy]
+    defaults [:read, :destroy]
+
+    create :create do
+      primary? true
+      argument :tags, {:array, :uuid}, allow_nil?: true
+      change set_attribute(:inserted_at, DateTime.utc_now())
+      change set_attribute(:updated_at, DateTime.utc_now())
+      change manage_relationship(:tags, type: :append_and_remove)
+    end
 
     read :by_id do
       argument :id, :uuid, allow_nil?: false
@@ -34,6 +46,16 @@ defmodule Cascade.Content.Document do
     update :publish do
       accept []
       change set_attribute(:publish_at, DateTime.utc_now())
+    end
+
+    update :update do
+      primary? true
+
+      argument :tags, {:array, :uuid} do
+        allow_nil? true
+      end
+
+      change manage_relationship(:tags, type: :append_and_remove)
     end
   end
 
@@ -62,10 +84,14 @@ defmodule Cascade.Content.Document do
   end
 
   relationships do
-    belongs_to :author, Cascade.Content.Author
+    belongs_to :author, Cascade.Content.Author do
+      attribute_writable? true
+    end
 
-    many_to_many :tag, Cascade.Content.Tag do
+    many_to_many :tags, Cascade.Content.Tag do
       through Cascade.Content.DocumentTag
+      source_attribute_on_join_resource :document_id
+      destination_attribute_on_join_resource :tag_id
     end
   end
 

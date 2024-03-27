@@ -16,7 +16,7 @@ defmodule CascadeWeb.DocumentLive.Index do
   defp apply_action(socket, :edit, %{"id" => id}) do
     socket
     |> assign(:page_title, "Edit Document")
-    |> assign(:document, Document.get_by_id!(id))
+    |> assign(:document, Document.get_by_id!(id, load: [:author, :tags]))
   end
 
   defp apply_action(socket, :new, _params) do

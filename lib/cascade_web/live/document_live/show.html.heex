@@ -1,5 +1,5 @@
 <.header>
-  Document <%= @document.id %>
+  Document <%= @document.title %>
   <:subtitle>This is a document record from your database.</:subtitle>
   <:actions>
     <.link patch={~p"/documents/#{@document}/show/edit"} phx-click={JS.push_focus()}>
@@ -17,7 +17,12 @@
 
 <.back navigate={~p"/documents"}>Back to documents</.back>
 
-<.modal :if={@live_action == :edit} id="document-modal" show on_cancel={JS.patch(~p"/documents/#{@document}")}>
+<.modal
+  :if={@live_action == :edit}
+  id="document-modal"
+  show
+  on_cancel={JS.patch(~p"/documents/#{@document}")}
+>
   <.live_component
     module={CascadeWeb.DocumentLive.FormComponent}
     id={@document.id}

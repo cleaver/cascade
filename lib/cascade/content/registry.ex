@@ -1,4 +1,7 @@
 defmodule Cascade.Content.Registry do
+  @moduledoc """
+  Registry for content resources.
+  """
   use Ash.Registry,
     extensions: [
       Ash.Registry.ResourceValidations

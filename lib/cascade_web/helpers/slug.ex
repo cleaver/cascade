@@ -10,19 +10,20 @@ defmodule CascadeWeb.Helpers.Slug do
 
   ## Examples
 
-      iex> import CascadeWeb.Helpers.Slug
+      iex> alias CascadeWeb.Helpers.Slug
       iex> Slug.generate("Hello World")
       "hello-world"
       iex> Slug.generate("I have an apple!")
       "have-apple"
 
   """
+  def generate(nil), do: ""
+
   def generate(source) do
     source
     |> String.downcase()
     |> String.split(~r/\W+/)
-    |> Enum.reject(&(String.length(&1) < 2))
-    |> Enum.reject(&(&1 in @ignore_words))
+    |> Enum.reject(fn word -> String.length(word) < 2 or word in @ignore_words end)
     |> Enum.join("-")
   end
 end

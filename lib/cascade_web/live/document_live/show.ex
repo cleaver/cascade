@@ -1,7 +1,7 @@
 defmodule CascadeWeb.DocumentLive.Show do
   use CascadeWeb, :live_view
 
-  alias Cascade.Content
+  alias Cascade.Content.Document
 
   @impl true
   def mount(_params, _session, socket) do
@@ -13,7 +13,7 @@ defmodule CascadeWeb.DocumentLive.Show do
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:document, Content.get_document!(id))}
+     |> assign(:document, Document.get_by_id!(id))}
   end
 
   defp page_title(:show), do: "Show Document"

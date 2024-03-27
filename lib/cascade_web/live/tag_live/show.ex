@@ -1,7 +1,7 @@
 defmodule CascadeWeb.TagLive.Show do
   use CascadeWeb, :live_view
 
-  alias Cascade.Content
+  alias Cascade.Content.Tag
 
   @impl true
   def mount(_params, _session, socket) do
@@ -13,7 +13,7 @@ defmodule CascadeWeb.TagLive.Show do
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:tag, Content.get_tag!(id))}
+     |> assign(:tag, Tag.get_by_id!(id))}
   end
 
   defp page_title(:show), do: "Show Tag"

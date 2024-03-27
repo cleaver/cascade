@@ -29,7 +29,12 @@
   </:action>
 </.table>
 
-<.modal :if={@live_action in [:new, :edit]} id="author-modal" show on_cancel={JS.patch(~p"/authors")}>
+<.modal
+  :if={@live_action in [:new, :edit]}
+  id="author-modal"
+  show
+  on_cancel={JS.patch(~p"/authors")}
+>
   <.live_component
     module={CascadeWeb.AuthorLive.FormComponent}
     id={@author.id || :new}
